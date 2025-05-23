@@ -1,6 +1,21 @@
-// main.cpp ready to write
+#include <iostream>
+#include "PolygonalMesh.hpp"
+#include "Utils.hpp"
+#include "UCDUtilities.hpp"
+
+using namespace std;
+using namespace Eigen;
+using namespace PolygonalLibrary;
 
 int main()
 {
-    return 0;
+	PolygonalMesh mesh;
+	if(!ImportMesh(mesh)){
+		cerr << "file not found" << endl;
+		return 1;
+	}
+
+	
+
+	return 0;
 }
