@@ -17,7 +17,7 @@ struct PolygonalMesh
 
     unsigned int NumCell1Ds = 0; ///< number of Cell1D
     std::vector<unsigned int> Cell1DsId = {}; ///< Cell1D id, size 1 x NumberCell1D
-    Eigen::MatrixXi Cell1DsExtrema = {}; ///< Cell1D vertices indices, size 2 x NumberCell1D (fromId,toId)
+    Eigen::MatrixXi Cell1DsExtremes = {}; ///< Cell1D vertices indices, size 2 x NumberCell1D (fromId,toId)
     std::map<unsigned int, list<unsigned int>> MarkerCell1Ds = {}; ///< Cell1D properties
 
     unsigned int NumCell2Ds = 0; ///< number of Cell2D
