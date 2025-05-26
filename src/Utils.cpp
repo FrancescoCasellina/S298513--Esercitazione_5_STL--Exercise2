@@ -66,11 +66,11 @@ bool ImportCell0Ds(PolygonalMesh &mesh) {
 		getline(converter, token, ';');
 		double y = std::stod(token);
 
-		//store x y coordinates inside respective matrix
+		//store x y coordinates per each vertice
 		mesh.Cell0DsCoordinates(0, id) = x;
 		mesh.Cell0DsCoordinates(1, id) = y;
 
-		//store id inside respective vector
+		//store id per each vertice
 		mesh.Cell0DsId.push_back(id);
 
 		//store markers per id
@@ -137,11 +137,11 @@ bool ImportCell1Ds(PolygonalMesh &mesh) {
                 getline(converter, token, ';');
                 unsigned int end = std::stoul(token);
 
-                //store origin end extremes inside respective matrix
+                //store origin and end extremes per each edge
                 mesh.Cell1DsExtremes(0, id) = origin;
                 mesh.Cell1DsExtremes(1, id) = end;
 
-                //store id inside respective vector
+                //store id per each edge
                 mesh.Cell1DsId.push_back(id);
 
                 //store markers per id
@@ -160,6 +160,87 @@ bool ImportCell1Ds(PolygonalMesh &mesh) {
 }
 // ***************************************************************************
 
+
+bool ImportCell2Ds(PolygonalMesh &mesh) {
+	ifstream file;
+	file.open("./Cell2Ds.csv");
+
+	if(file.fail()) {
+		cerr << "Error importing Cell2Ds.csv" << endl;
+		return false;
+	}
+
+	list<string> listLines;
+	string line;
+	while (getline(file, line)) {
+		listLines.push_back(line);
+	}
+
+	file.close();
+
+	//remove header
+	listLines.pop_front();
+
+	mesh.NumCell2Ds = listLines.size();
+
+	if (mesh.NumCell2Ds == 0) {
+		cerr << "Cell2D empty or broken" << endl;
+		return false;
+	}
+
+	mesh.Cell2DsId.reserve(mesh.NumCell2Ds);
+	mesh.Cell2DsVertices.reserve(mesh.NumCell2Ds);
+	mesh.Cell2DsEdges.reserve(mesh.NumCell2Ds);
+
+        for (const string &line : listLines) {
+                istringstream converter(line); //reads rows from Cell1Ds.csv and saves to variable converter
+
+                string token; //create temp variable
+
+                //create variables for each column and save data per each line
+		getline(converter, token, ';');
+		unsigned int id = std::stoul(token);
+		getline(converter, token, ';');
+		unsigned int marker = std::stoul(token);
+		getline(converter, token, ';');
+		unsigned int NumVertices = std::stoul(token);
+		vector<unsigned int> vertices;
+		vertices.reserve(NumVertices);
+		for (unsigned int i = 0; i < NumVertices; i++) {
+			getline(converter, token, ';');
+			vertices.push_back(std::stoul(token));
+		}
+		getline(converter, token, ';');
+		unsigned int NumEdges = std::stoul(token);
+		vector<unsigned int> edges;
+		edges.reserve(NumEdges);
+		for (unsigned int i = 0; i < NumEdges; i++) {
+			getline(converter, token, ';');
+			edges.push_back(std::stoul(token));
+		}
+
+		//store id per each polygon
+		mesh.Cell2DsId.push_back(id);
+
+		//store vertices and edges per each polygon
+		mesh.Cell2DsVertices.push_back(vertices);
+		mesh.Cell2DsEdges.push_back(edges);
+
+		//store markers per id
+		if(marker != 0) {
+                        const auto it = mesh.MarkerCell2Ds.find(marker);
+                        if(it == mesh.MarkerCell2Ds.end()) {
+                                mesh.MarkerCell2Ds.insert({marker, {id}});
+                        }
+                        else {
+                                it->second.push_back(id);
+                        }
+                }
+
+	}
+
+	return true;
+}
 /*
 bool ImportCell2Ds(TriangularMesh& mesh)
 {
