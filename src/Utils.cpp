@@ -7,13 +7,19 @@ namespace PolygonalLibrary {
 
 
 bool ImportMesh(PolygonalMesh &mesh) {
+	mesh.Cell0DsId.clear();
+	mesh.MarkerCell0Ds.clear();
+        mesh.Cell1DsId.clear();
+        mesh.MarkerCell1Ds.clear();
+        mesh.Cell2DsId.clear();
+        mesh.MarkerCell2Ds.clear();
+
 	if(!ImportCell0Ds(mesh))
 		return false;
 	if(!ImportCell1Ds(mesh))
 		return false;
-/*	if(!ImportCell2Ds(mesh))
+	if(!ImportCell2Ds(mesh))
 		return false;
-*/
 	return true;
 }
 // ***************************************************************************
@@ -241,57 +247,7 @@ bool ImportCell2Ds(PolygonalMesh &mesh) {
 
 	return true;
 }
-/*
-bool ImportCell2Ds(TriangularMesh& mesh)
-{
-    ifstream file;
-    file.open("./Cell2Ds.csv");
+// ***************************************************************************
 
-    if(file.fail())
-        return false;
 
-    list<string> listLines;
-    string line;
-    while (getline(file, line))
-        listLines.push_back(line);
-
-    file.close();
-
-    // remove header
-    listLines.pop_front();
-
-    mesh.NumCell2Ds = listLines.size();
-
-    if (mesh.NumCell2Ds == 0)
-    {
-        cerr << "There is no cell 2D" << endl;
-        return false;
-    }
-
-    mesh.Cell2DsId.reserve(mesh.NumCell2Ds);
-    mesh.Cell2DsVertices.reserve(mesh.NumCell2Ds);
-    mesh.Cell2DsEdges.reserve(mesh.NumCell2Ds);
-
-    for (const string& line : listLines)
-    {
-        istringstream converter(line);
-
-        unsigned int id;
-        array<unsigned int, 3> vertices;
-        array<unsigned int, 3> edges;
-
-        converter >>  id;
-        for(unsigned int i = 0; i < 3; i++)
-            converter >> vertices[i];
-        for(unsigned int i = 0; i < 3; i++)
-            converter >> edges[i];
-
-        mesh.Cell2DsId.push_back(id);
-        mesh.Cell2DsVertices.push_back(vertices);
-        mesh.Cell2DsEdges.push_back(edges);
-    }
-
-    return true;
-}
-*/
 }
