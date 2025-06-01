@@ -51,6 +51,10 @@ int main()
 			unsigned int id = mesh.Cell1DsId[i];
 			int origin = mesh.Cell1DsExtremes(0, id);
 			int end = mesh.Cell1DsExtremes(1, id);
+			if (origin >= mesh.Cell0DsCoordinates.cols() || end >= mesh.Cell0DsCoordinates.cols()) {
+				cerr << "ERROR: Vertex ID out of bounds in Cell1D edge ID " << id << endl;
+				return 3;
+			}
 			cout << "Cell1D Id: " << id
 				<< " | Origin Vertex Id: " << origin
 				<< " | End Vertex Id: " << end
@@ -75,11 +79,17 @@ int main()
 			for (unsigned int v : mesh.Cell2DsVertices[i]) {
 				cout << v << " ";
 			}
+			for (unsigned int v : mesh.Cell2DsVertices[i]) {
+				if (v >= mesh.Cell0DsCoordinates.cols()) {
+					cerr << "ERROR: Vertex ID out of bounds in Cell2D ID " << id << endl;
+					return 4;
+				}
+			}
 			cout << "| Edges: ";
 			for (unsigned int e : mesh.Cell2DsEdges[i]) {
 				cout << e << " ";
 			}
-			cout << " | Marker: ";
+			cout << "| Marker: ";
 	                bool foundMarker = false;
 	                for (const auto& [marker, cellIds] : mesh.MarkerCell2Ds) {
 	                        if (std::find(cellIds.begin(), cellIds.end(), id) != cellIds.end()) {
@@ -93,6 +103,64 @@ int main()
 	                cout << endl;
 		}
 	}
+
+	bool EdgCheck = true;
+	for (unsigned int i = 0; i < mesh.NumCell1Ds; i++) {
+		unsigned int id = mesh.Cell1DsId[i];
+		int origin = mesh.Cell1DsExtremes(0, id);
+		int end = mesh.Cell1DsExtremes(1, id);
+
+		double X0 = mesh.Cell0DsCoordinates(0, origin);
+		double Y0 = mesh.Cell0DsCoordinates(1, origin);
+		double X1 = mesh.Cell0DsCoordinates(0, end);
+		double Y1 = mesh.Cell0DsCoordinates(1, end);
+
+		double length = std::hypot(X1 - X0, Y1 - Y0);
+		if (length <= 0.0) {
+			cerr << "ERROR! Found zero length edge -- Id: " << id << endl;
+		        EdgCheck = false;
+		}
+	}
+	if (EdgCheck)
+		cout << "No zero length edges found..." << endl;
+
+	bool PolCheck = true;
+	for (unsigned int i = 0; i < mesh.NumCell2Ds; i++) {
+		const auto& vertices = mesh.Cell2DsVertices[i];
+		if (vertices.size() < 3) {
+	        	cerr << "ERROR! Found broken polygon -- Id: " << mesh.Cell2DsId[i] << endl;
+	        	PolCheck = false;
+	        	continue;
+		}
+
+		double area = 0.0;
+		for (size_t j = 0; j < vertices.size(); j++) {
+	        	size_t k = (j + 1) % vertices.size();
+	        	double xj = mesh.Cell0DsCoordinates(0, vertices[j]);
+	        	double yj = mesh.Cell0DsCoordinates(1, vertices[j]);
+	        	double xk = mesh.Cell0DsCoordinates(0, vertices[k]);
+	        	double yk = mesh.Cell0DsCoordinates(1, vertices[k]);
+	        	area += (xj * yk - xk * yj);
+		}
+		area = std::abs(area) * 0.5;
+
+		if (area <= 0.0) {
+			cerr << "ERROR! Found zero area polygon -- Id: " << mesh.Cell2DsId[i] << endl;
+			PolCheck = false;
+	    	}
+	}
+	if (PolCheck)
+		cout << "No zero area polygons found..." << endl;
+
+	Gedim::UCDUtilities utils;
+
+	Eigen::MatrixXd coords3d(3, mesh.Cell0DsCoordinates.cols());
+	coords3d.row(0) = mesh.Cell0DsCoordinates.row(0);  // X
+	coords3d.row(1) = mesh.Cell0DsCoordinates.row(1);  // Y
+	coords3d.row(2).setZero();                         // Z = 0
+
+	utils.ExportPoints("./Cell0Ds.inp", coords3d);
+	utils.ExportSegments("./Cell1Ds.inp", coords3d, mesh.Cell1DsExtremes);
 
 	return 0;
 }
